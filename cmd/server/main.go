@@ -37,6 +37,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
 	addr := ":" + port
 	log.Printf("server started on %s", addr)
 	if err := http.ListenAndServe(addr, app); err != nil {
