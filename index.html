@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #f5f5f5;
+      --text: #101114;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark {
+      --bg: #0f0f12;
+      --card: #1a1a1f;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #2a2a31;
+      --accent: #2563eb;
+      --accent-hover: #3b82f6;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .container {
+      width: min(920px, 100% - 2rem);
+      margin: 0 auto;
+      padding: 2rem 0 3rem;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 1.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .row.wrap-mobile {
+      flex-wrap: wrap;
+    }
+
+    .input {
+      width: 100%;
+      min-width: 200px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.85rem 0.95rem;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .input:focus {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--card) 84%, var(--accent) 16%);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.8rem 0.95rem;
+      font-weight: 600;
+      font-size: 0.92rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+      color: #fff;
+      border-color: var(--accent-hover);
+    }
+
+    .result {
+      display: none;
+      padding: 1rem;
+      margin-top: 0.75rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--card) 85%, var(--accent) 15%);
+    }
+
+    .result.active {
+      display: block;
+    }
+
+    .result-title {
+      margin: 0 0 0.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .result-link {
+      margin: 0;
+      color: var(--accent);
+      word-break: break-all;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .section-title {
+      margin: 0 0 0.8rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .recent-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    .link-card {
+      padding: 0.85rem 0.9rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--card) 90%, #ffffff 10%);
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 0.75rem;
+      align-items: center;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    body.dark .link-card {
+      background: color-mix(in srgb, var(--card) 92%, #000000 8%);
+    }
+
+    .link-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .code-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.84rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--accent) 20%, transparent);
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+    }
+
+    .orig-url {
+      font-size: 0.9rem;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .clicks {
+      font-size: 0.82rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .go-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s ease;
+    }
+
+    .go-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .error {
+      margin-top: 0.65rem;
+      color: #ef4444;
+      font-size: 0.86rem;
+      display: none;
+    }
+
+    .error.active {
+      display: block;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        width: calc(100% - 1rem);
+        padding-top: 1rem;
+      }
+
+      .row {
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .link-card {
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas:
+          "code url go"
+          "clicks clicks clicks";
+      }
+
+      .code-pill {
+        grid-area: code;
+      }
+
+      .orig-url {
+        grid-area: url;
+      }
+
+      .go-btn {
+        grid-area: go;
+        justify-self: end;
+      }
+
+      .clicks {
+        grid-area: clicks;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="topbar">
+      <h1>URL Shortener</h1>
+      <button id="themeToggle" class="btn" type="button" aria-label="Переключить тему">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">Dark</span>
+      </button>
+    </div>
+
+    <section class="card panel">
+      <div class="row wrap-mobile">
+        <input id="urlInput" class="input" type="url" placeholder="Вставьте длинную ссылку (https://...)" />
+        <button id="shortenBtn" class="btn primary" type="button">
+          <span>Сократить</span>
+          <span>↗</span>
+        </button>
+      </div>
+      <p id="errorText" class="error"></p>
+
+      <div id="resultBlock" class="result">
+        <p class="result-title">Результат</p>
+        <div class="row">
+          <a id="shortLink" class="result-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+          <button id="copyBtn" class="btn" type="button">
+            <span id="copyBtnText">Copy</span>
+            <span>⧉</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <div class="row" style="justify-content: space-between;">
+        <h2 class="section-title">Recent links</h2>
+        <p class="subtitle">Клики обновляются через /stats/{code}</p>
+      </div>
+      <div id="recentList" class="recent-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    const themeText = document.getElementById("themeText");
+    const urlInput = document.getElementById("urlInput");
+    const shortenBtn = document.getElementById("shortenBtn");
+    const errorText = document.getElementById("errorText");
+    const resultBlock = document.getElementById("resultBlock");
+    const shortLink = document.getElementById("shortLink");
+    const copyBtn = document.getElementById("copyBtn");
+    const copyBtnText = document.getElementById("copyBtnText");
+    const recentList = document.getElementById("recentList");
+
+    const state = {
+      links: [
+        { code: "ab12CD", original_url: "https://developer.mozilla.org/ru/docs/Web/JavaScript", clicks: 8, isDemo: true },
+        { code: "Qw9xY1", original_url: "https://go.dev/doc/tutorial/getting-started", clicks: 15, isDemo: true },
+        { code: "Z7mP2k", original_url: "https://github.com/golang/go", clicks: 4, isDemo: true }
+      ]
+    };
+
+    function setTheme(theme) {
+      const dark = theme === "dark";
+      document.body.classList.toggle("dark", dark);
+      themeIcon.textContent = dark ? "☀️" : "🌙";
+      themeText.textContent = dark ? "Light" : "Dark";
+      localStorage.setItem("theme", theme);
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem("theme");
+      setTheme(saved === "dark" ? "dark" : "light");
+    }
+
+    function truncateUrl(url, max = 56) {
+      if (url.length <= max) return url;
+      return url.slice(0, max - 1) + "…";
+    }
+
+    function showError(message) {
+      errorText.textContent = message;
+      errorText.classList.add("active");
+    }
+
+    function clearError() {
+      errorText.textContent = "";
+      errorText.classList.remove("active");
+    }
+
+    function renderRecent() {
+      recentList.innerHTML = "";
+
+      for (const item of state.links) {
+        const card = document.createElement("article");
+        card.className = "link-card";
+
+        const code = document.createElement("span");
+        code.className = "code-pill";
+        code.textContent = item.code;
+
+        const original = document.createElement("p");
+        original.className = "orig-url";
+        original.title = item.original_url;
+        original.textContent = truncateUrl(item.original_url);
+
+        const clicks = document.createElement("span");
+        clicks.className = "clicks";
+        clicks.textContent = "Clicks: " + item.clicks;
+
+        const goBtn = document.createElement("button");
+        goBtn.className = "go-btn";
+        goBtn.type = "button";
+        goBtn.title = "Открыть оригинал";
+        goBtn.textContent = "↗";
+        goBtn.addEventListener("click", () => {
+          window.open(item.original_url, "_blank", "noopener,noreferrer");
+        });
+
+        card.append(code, original, clicks, goBtn);
+        recentList.append(card);
+      }
+    }
+
+    async function refreshClicks() {
+      const linksToUpdate = state.links.filter((l) => !l.isDemo);
+
+      await Promise.all(
+        linksToUpdate.map(async (link) => {
+          try {
+            const res = await fetch("/stats/" + encodeURIComponent(link.code));
+            if (!res.ok) return;
+            const stats = await res.json();
+            const idx = state.links.findIndex((l) => l.code === link.code);
+            if (idx >= 0) {
+              state.links[idx].clicks = stats.clicks ?? state.links[idx].clicks;
+              state.links[idx].original_url = stats.original_url ?? state.links[idx].original_url;
+            }
+          } catch (_) {
+            // Ошибки статистики не ломают интерфейс.
+          }
+        })
+      );
+
+      renderRecent();
+    }
+
+    async function shortenUrl() {
+      const raw = urlInput.value.trim();
+      clearError();
+
+      if (!raw) {
+        showError("Введите ссылку.");
+        return;
+      }
+
+      try {
+        shortenBtn.disabled = true;
+        const res = await fetch("/shorten", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: raw })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          showError(text || "Не удалось сократить ссылку.");
+          return;
+        }
+
+        const data = await res.json();
+        const short = data.short_url || (location.origin + "/" + data.code);
+        shortLink.href = short;
+        shortLink.textContent = short;
+        resultBlock.classList.add("active");
+
+        state.links.unshift({
+          code: data.code,
+          original_url: data.original_url || raw,
+          clicks: 0,
+          isDemo: false
+        });
+
+        state.links = state.links.slice(0, 20);
+        renderRecent();
+        await refreshClicks();
+      } catch (err) {
+        showError("Сетевая ошибка. Проверьте, что backend запущен на 8080.");
+      } finally {
+        shortenBtn.disabled = false;
+      }
+    }
+
+    async function copyResult() {
+      const text = shortLink.textContent;
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        const prev = copyBtnText.textContent;
+        copyBtnText.textContent = "Copied!";
+        copyBtn.disabled = true;
+        setTimeout(() => {
+          copyBtnText.textContent = prev;
+          copyBtn.disabled = false;
+        }, 1500);
+      } catch (_) {
+        showError("Не удалось скопировать ссылку.");
+      }
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const next = document.body.classList.contains("dark") ? "light" : "dark";
+      setTheme(next);
+    });
+
+    shortenBtn.addEventListener("click", shortenUrl);
+    copyBtn.addEventListener("click", copyResult);
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") shortenUrl();
+    });
+
+    initTheme();
+    renderRecent();
+    setInterval(refreshClicks, 10000);
+  </script>
+</body>
+</html>
