@@ -1,5 +1,13 @@
 services:
   - type: web
+    name: go-url-shortener
+    env: go
+    plan: free
+    buildCommand: go build -o app ./cmd/server
+    startCommand: ./app
+    autoDeploy: true
+
+  - type: web
     name: text-moderation-service
     env: python
     plan: free
